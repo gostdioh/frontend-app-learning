@@ -20,6 +20,19 @@ jest
 
 describe('Upgrade Notification', () => {
   const courseMetadata = Factory.build('courseMetadata');
+  let setItemSpy;
+  let getItemSpy;
+
+  beforeAll(() => {
+    getItemSpy = jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem');
+    setItemSpy = jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem');
+  });
+
+  afterAll(() => {
+    getItemSpy.mockRestore();
+    setItemSpy.mockRestore();
+  });
+
   function buildAndRender(attributes) {
     const upgradeNotificationData = Factory.build('upgradeNotificationData', { ...attributes });
     render(<UpgradeNotification {...upgradeNotificationData} />);
@@ -93,6 +106,7 @@ describe('Upgrade Notification', () => {
         upgradeUrl: 'www.exampleUpgradeUrl.com',
       },
     });
+    expect(localStorage.getItem).toHaveBeenCalled();
     expect(screen.getByRole('heading', { name: 'Pursue a verified certificate' })).toBeInTheDocument();
     expect(screen.getByText(/Earn a.*?of completion to showcase on your resumé/s).textContent).toMatch('Earn a verified certificate of completion to showcase on your resumé');
     expect(screen.getByText(/Support our.*?at edX/s).textContent).toMatch('Support our non-profit mission at edX');
@@ -229,6 +243,7 @@ describe('Upgrade Notification', () => {
     ) - correctedTime) / 1000 / 60 / 60);
     const setupgradeNotificationCurrentState = jest.fn();
     ExpirationCountdown(courseMetadata.id, hoursToDiscountExpiration, setupgradeNotificationCurrentState, 'access');
+    expect(localStorage.getItem).toHaveBeenCalled();
 
     expect(screen.getByRole('heading', { name: '15% First-Time Learner Discount' })).toBeInTheDocument();
     expect(screen.getByText(/hours left/s).textContent).toMatch('12 hours left');
@@ -259,6 +274,7 @@ describe('Upgrade Notification', () => {
         upgradeUrl: 'www.exampleUpgradeUrl.com',
       },
     });
+    expect(localStorage.getItem).toHaveBeenCalled();
     expect(screen.getByRole('heading', { name: '15% First-Time Learner Discount' })).toBeInTheDocument();
     expect(screen.getByText(/days left/s).textContent).toMatch('6 days left');
     expect(screen.getByText(/Earn a.*?of completion to showcase on your resumé/s).textContent).toMatch('Earn a verified certificate of completion to showcase on your resumé');
@@ -288,6 +304,7 @@ describe('Upgrade Notification', () => {
         upgradeUrl: 'www.exampleUpgradeUrl.com',
       },
     });
+    expect(localStorage.getItem).toHaveBeenCalled();
     expect(screen.getByRole('heading', { name: 'Course Access Expiration' })).toBeInTheDocument();
     expect(screen.getByText('5 days left')).toBeInTheDocument(); // setting the time to 12 will mean that it's slightly less than 12
     expect(screen.getByText(/You will lose all access to this course.*?on/s).textContent).toMatch('You will lose all access to this course, including any progress, on April 18.');
