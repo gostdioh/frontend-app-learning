@@ -9,7 +9,7 @@ import {
   screen,
   waitFor,
 } from '../../setupTest';
-import UpgradeNotification from './UpgradeNotification';
+import UpgradeNotification, { ExpirationCountdown } from './UpgradeNotification';
 
 initializeMockApp();
 jest.mock('@edx/frontend-platform/analytics');
@@ -19,6 +19,7 @@ jest
   .mockImplementation(() => dateNow.valueOf());
 
 describe('Upgrade Notification', () => {
+  const courseMetadata = Factory.build('courseMetadata');
   function buildAndRender(attributes) {
     const upgradeNotificationData = Factory.build('upgradeNotificationData', { ...attributes });
     render(<UpgradeNotification {...upgradeNotificationData} />);
@@ -184,6 +185,13 @@ describe('Upgrade Notification', () => {
         upgradeUrl: 'www.exampleUpgradeUrl.com',
       },
     });
+    // Set up localStorage
+    const timeOffsetMillis = 0;
+    const correctedTime = new Date(Date.now() + timeOffsetMillis);
+    const hoursToAccessExpiration = Math.floor((accessExpirationDate - correctedTime) / 1000 / 60 / 60);
+    const setupgradeNotificationCurrentState = jest.fn();
+    ExpirationCountdown(courseMetadata.id, hoursToAccessExpiration, setupgradeNotificationCurrentState, 'offer');
+
     expect(screen.getByRole('heading', { name: '15% First-Time Learner Discount' })).toBeInTheDocument();
     expect(screen.getByText('Less than 1 hour left')).toBeInTheDocument();
     expect(screen.getByText(/Earn a.*?of completion to showcase on your resumé/s).textContent).toMatch('Earn a verified certificate of completion to showcase on your resumé');

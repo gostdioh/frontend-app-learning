@@ -185,7 +185,7 @@ UpsellFBESoonCardContent.defaultProps = {
   timezoneFormatArgs: {},
 };
 
-function ExpirationCountdown({
+export function ExpirationCountdown({
   courseId, hoursToExpiration, setupgradeNotificationCurrentState, type,
 }) {
   let expirationText;
