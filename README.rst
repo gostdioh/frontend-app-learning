@@ -5,6 +5,7 @@ frontend-app-learning
 
 Introduction
 ------------
+export NODE_OPTIONS=--openssl-legacy-provider
 
 This is the Learning MFE (micro-frontend application), which renders all
 learner-facing course pages (like the course outline, the progress page,
