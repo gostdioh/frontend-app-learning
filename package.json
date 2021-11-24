@@ -35,7 +35,7 @@
     "@edx/frontend-component-footer": "10.1.6",
     "@edx/frontend-enterprise-utils": "1.1.1",
     "@edx/frontend-lib-special-exams": "1.14.0",
-    "@edx/frontend-platform": "1.14.0",
+    "@edx/frontend-platform": "1.14.1",
     "@edx/paragon": "16.18.0",
     "@fortawesome/fontawesome-svg-core": "1.2.36",
     "@fortawesome/free-brands-svg-icons": "5.15.4",
@@ -68,7 +68,7 @@
   "devDependencies": {
     "@edx/frontend-build": "8.1.6",
     "@testing-library/dom": "7.16.3",
-    "@testing-library/jest-dom": "5.15.0",
+    "@testing-library/jest-dom": "5.15.1",
     "@testing-library/react": "10.3.0",
     "@testing-library/user-event": "13.5.0",
     "@wojtekmaj/enzyme-adapter-react-17": "0.6.5",
