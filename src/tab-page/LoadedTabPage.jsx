@@ -5,13 +5,15 @@ import { Helmet } from 'react-helmet';
 import { getConfig } from '@edx/frontend-platform';
 import { useToggle } from '@edx/paragon';
 
-import { CourseTabsNavigation } from '../course-header';
+import { CourseTabsNavigation } from '../course-tabs';
 import { useModel } from '../generic/model-store';
 import { AlertList } from '../generic/user-messages';
 import StreakModal from '../shared/streak-celebration';
 import InstructorToolbar from '../instructor-toolbar';
 import useEnrollmentAlert from '../alerts/enrollment-alert';
 import useLogistrationAlert from '../alerts/logistration-alert';
+
+import ProductTours from '../product-tours/ProductTours';
 
 function LoadedTabPage({
   activeTabSlug,
@@ -21,11 +23,12 @@ function LoadedTabPage({
   unitId,
 }) {
   const {
+    celebrations,
+    canViewLegacyCourseware,
+    org,
     originalUserIsStaff,
     tabs,
     title,
-    celebrations,
-    canViewLegacyCourseware,
     verifiedMode,
   } = useModel(metadataModel, courseId);
 
@@ -42,6 +45,12 @@ function LoadedTabPage({
 
   return (
     <>
+      <ProductTours
+        activeTab={activeTabSlug}
+        courseId={courseId}
+        isStreakCelebrationOpen={isStreakCelebrationOpen}
+        org={org}
+      />
       <Helmet>
         <title>{`${activeTab ? `${activeTab.title} | ` : ''}${title} | ${getConfig().SITE_NAME}`}</title>
       </Helmet>

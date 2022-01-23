@@ -36,29 +36,6 @@
   }
 }
 
-.course-header {
-  min-width: 0;
-
-  .course-title-lockup {
-    min-width: 0;
-
-    span {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding-bottom: 0.1rem;
-    }
-  }
-
-  .user-dropdown {
-    .btn {
-      height: 3rem;
-      @media (max-width: -1 + map-get($grid-breakpoints, "sm")) {
-        padding: 0 0.5rem;
-      }
-    }
-  }
-}
 .course-tabs-navigation {
   border-bottom: solid 1px #eaeaea;
 
@@ -396,6 +373,7 @@
 @import "course-home/progress-tab/course-completion/CompletionDonutChart.scss";
 @import "course-home/progress-tab/grades/course-grade/GradeBar.scss";
 @import "courseware/course/course-exit/CourseRecommendations";
+@import "src/tour/Checkpoint.scss";
 
 /** [MM-P2P] Experiment */
 @import "experiments/mm-p2p/index.scss";

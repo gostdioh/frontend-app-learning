@@ -9,6 +9,7 @@ import * as celebrationUtils from './celebration/utils';
 import useWindowSize from '../../generic/tabs/useWindowSize';
 
 jest.mock('@edx/frontend-platform/analytics');
+jest.mock('./NotificationTray', () => () => <div data-testid="NotificationTray" />);
 jest.mock('../../generic/tabs/useWindowSize');
 useWindowSize.mockReturnValue({ width: 1200 });
 
@@ -17,6 +18,8 @@ celebrationUtils.recordFirstSectionCelebration = recordFirstSectionCelebration;
 
 describe('Course', () => {
   let store;
+  let getItemSpy;
+  let setItemSpy;
   const mockData = {
     nextSequenceHandler: () => {},
     previousSequenceHandler: () => {},
@@ -32,6 +35,13 @@ describe('Course', () => {
       sequenceId,
       unitId: Object.values(models.units)[0].id,
     });
+    getItemSpy = jest.spyOn(Object.getPrototypeOf(window.sessionStorage), 'getItem');
+    setItemSpy = jest.spyOn(Object.getPrototypeOf(window.sessionStorage), 'setItem');
+  });
+
+  afterAll(() => {
+    getItemSpy.mockRestore();
+    setItemSpy.mockRestore();
   });
 
   it('loads learning sequence', async () => {
@@ -55,11 +65,7 @@ describe('Course', () => {
     );
   });
 
-  it('displays celebration modal', async () => {
-    // TODO: Remove these console mocks after merging https://github.com/edx/paragon/pull/526.
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-
+  it('displays first section celebration modal', async () => {
     const courseMetadata = Factory.build('courseMetadata', { celebrations: { firstSection: true } });
     const testStore = await initializeTestStore({ courseMetadata }, false);
     const { courseware, models } = testStore.getState();
@@ -74,9 +80,27 @@ describe('Course', () => {
     handleNextSectionCelebration(sequenceId, sequenceId, testData.unitId);
     render(<Course {...testData} />, { store: testStore });
 
-    const celebrationModal = screen.getByRole('dialog');
-    expect(celebrationModal).toBeInTheDocument();
-    expect(getByRole(celebrationModal, 'heading', { name: 'Congratulations!' })).toBeInTheDocument();
+    const firstSectionCelebrationModal = screen.getByRole('dialog');
+    expect(firstSectionCelebrationModal).toBeInTheDocument();
+    expect(getByRole(firstSectionCelebrationModal, 'heading', { name: 'Congratulations!' })).toBeInTheDocument();
+  });
+
+  it('displays weekly goal celebration modal', async () => {
+    const courseMetadata = Factory.build('courseMetadata', { celebrations: { weeklyGoal: true } });
+    const testStore = await initializeTestStore({ courseMetadata }, false);
+    const { courseware, models } = testStore.getState();
+    const { courseId, sequenceId } = courseware;
+    const testData = {
+      ...mockData,
+      courseId,
+      sequenceId,
+      unitId: Object.values(models.units)[0].id,
+    };
+    render(<Course {...testData} />, { store: testStore });
+
+    const weeklyGoalCelebrationModal = screen.getByRole('dialog');
+    expect(weeklyGoalCelebrationModal).toBeInTheDocument();
+    expect(getByRole(weeklyGoalCelebrationModal, 'heading', { name: 'You met your goal!' })).toBeInTheDocument();
   });
 
   it('displays notification trigger and toggles active class on click', async () => {
@@ -89,6 +113,55 @@ describe('Course', () => {
     expect(notificationTrigger).toHaveClass('trigger-active');
     fireEvent.click(notificationTrigger);
     expect(notificationTrigger).not.toHaveClass('trigger-active');
+  });
+
+  it('handles click to open/close notification tray', async () => {
+    sessionStorage.clear();
+    render(<Course {...mockData} />);
+    expect(sessionStorage.getItem(`notificationTrayStatus.${mockData.courseId}`)).toBe('"open"');
+    const notificationShowButton = await screen.findByRole('button', { name: /Show notification tray/i });
+    expect(screen.queryByTestId('NotificationTray')).toBeInTheDocument();
+    fireEvent.click(notificationShowButton);
+    expect(sessionStorage.getItem(`notificationTrayStatus.${mockData.courseId}`)).toBe('"closed"');
+    expect(screen.queryByTestId('NotificationTray')).not.toBeInTheDocument();
+  });
+
+  it('handles reload persisting notification tray status', async () => {
+    sessionStorage.clear();
+    render(<Course {...mockData} />);
+    const notificationShowButton = await screen.findByRole('button', { name: /Show notification tray/i });
+    fireEvent.click(notificationShowButton);
+    expect(sessionStorage.getItem(`notificationTrayStatus.${mockData.courseId}`)).toBe('"closed"');
+
+    // Mock reload window, this doesn't happen in the Course component,
+    // calling the reload to check if the tray remains closed
+    const { location } = window;
+    delete window.location;
+    window.location = { reload: jest.fn() };
+    window.location.reload();
+    expect(window.location.reload).toHaveBeenCalled();
+    window.location = location;
+    expect(sessionStorage.getItem(`notificationTrayStatus.${mockData.courseId}`)).toBe('"closed"');
+    expect(screen.queryByTestId('NotificationTray')).not.toBeInTheDocument();
+  });
+
+  it('handles sessionStorage from a different course for the notification tray', async () => {
+    sessionStorage.clear();
+    const courseMetadataSecondCourse = Factory.build('courseMetadata');
+
+    // set sessionStorage for a different course before rendering Course
+    sessionStorage.setItem(`notificationTrayStatus.${courseMetadataSecondCourse.id}`, '"open"');
+
+    render(<Course {...mockData} />);
+    expect(sessionStorage.getItem(`notificationTrayStatus.${mockData.courseId}`)).toBe('"open"');
+    const notificationShowButton = await screen.findByRole('button', { name: /Show notification tray/i });
+    fireEvent.click(notificationShowButton);
+
+    // Verify sessionStorage was updated for the original course
+    expect(sessionStorage.getItem(`notificationTrayStatus.${mockData.courseId}`)).toBe('"closed"');
+
+    // Verify the second course sessionStorage was not changed
+    expect(sessionStorage.getItem(`notificationTrayStatus.${courseMetadataSecondCourse.id}`)).toBe('"open"');
   });
 
   it('renders course breadcrumbs as expected', async () => {
@@ -112,8 +185,8 @@ describe('Course', () => {
     loadUnit();
     await waitFor(() => expect(screen.queryByText('Loading learning sequence...')).not.toBeInTheDocument());
     // expect the section and sequence "titles" to be loaded in as breadcrumb labels.
-    expect(screen.getByText('cdabcdabcdabcdabcdabcdabcdabcd13')).toBeInTheDocument();
-    expect(screen.getByText('cdabcdabcdabcdabcdabcdabcdabcd12')).toBeInTheDocument();
+    expect(screen.getByText(Object.values(models.sections)[0].title)).toBeInTheDocument();
+    expect(screen.getByText(Object.values(models.sequences)[0].title)).toBeInTheDocument();
   });
 
   it('passes handlers to the sequence', async () => {

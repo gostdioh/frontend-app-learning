@@ -5,6 +5,7 @@ Object {
   "courseHome": Object {
     "courseId": "course-v1:edX+DemoX+Demo_Course_1",
     "courseStatus": "loaded",
+    "proctoringPanelStatus": "loading",
     "targetUserId": undefined,
     "toastBodyLink": null,
     "toastBodyText": null,
@@ -71,6 +72,7 @@ Object {
         ],
         "title": "Demonstration Course",
         "userTimezone": "UTC",
+        "username": "MockUser",
         "verifiedMode": Object {
           "currencySymbol": "$",
           "price": 10,
@@ -301,6 +303,13 @@ Object {
   "recommendations": Object {
     "recommendationsStatus": "loading",
   },
+  "tours": Object {
+    "showCoursewareTour": false,
+    "showExistingUserCourseHomeTour": false,
+    "showNewUserCourseHomeModal": false,
+    "showNewUserCourseHomeTour": false,
+    "toursEnabled": false,
+  },
 }
 `;
 
@@ -309,6 +318,7 @@ Object {
   "courseHome": Object {
     "courseId": "course-v1:edX+DemoX+Demo_Course_1",
     "courseStatus": "loaded",
+    "proctoringPanelStatus": "loading",
     "targetUserId": undefined,
     "toastBodyLink": null,
     "toastBodyText": null,
@@ -375,6 +385,7 @@ Object {
         ],
         "title": "Demonstration Course",
         "userTimezone": "UTC",
+        "username": "MockUser",
         "verifiedMode": Object {
           "currencySymbol": "$",
           "price": 10,
@@ -485,6 +496,13 @@ Object {
   "recommendations": Object {
     "recommendationsStatus": "loading",
   },
+  "tours": Object {
+    "showCoursewareTour": false,
+    "showExistingUserCourseHomeTour": false,
+    "showNewUserCourseHomeModal": false,
+    "showNewUserCourseHomeTour": false,
+    "toursEnabled": false,
+  },
 }
 `;
 
@@ -493,6 +511,7 @@ Object {
   "courseHome": Object {
     "courseId": "course-v1:edX+DemoX+Demo_Course_1",
     "courseStatus": "loaded",
+    "proctoringPanelStatus": "loading",
     "targetUserId": undefined,
     "toastBodyLink": null,
     "toastBodyText": null,
@@ -559,6 +578,7 @@ Object {
         ],
         "title": "Demonstration Course",
         "userTimezone": "UTC",
+        "username": "MockUser",
         "verifiedMode": Object {
           "currencySymbol": "$",
           "price": 10,
@@ -590,7 +610,7 @@ Object {
         "gradingPolicy": Object {
           "assignmentPolicies": Array [
             Object {
-              "averageGrade": 1,
+              "averageGrade": "1.00",
               "numDroppable": 1,
               "shortLabel": "HW",
               "type": "Homework",
@@ -673,6 +693,13 @@ Object {
   },
   "recommendations": Object {
     "recommendationsStatus": "loading",
+  },
+  "tours": Object {
+    "showCoursewareTour": false,
+    "showExistingUserCourseHomeTour": false,
+    "showNewUserCourseHomeModal": false,
+    "showNewUserCourseHomeTour": false,
+    "toursEnabled": false,
   },
 }
 `;

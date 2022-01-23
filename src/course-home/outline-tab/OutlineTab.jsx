@@ -4,21 +4,18 @@ import { sendTrackEvent } from '@edx/frontend-platform/analytics';
 import { getAuthenticatedUser } from '@edx/frontend-platform/auth';
 import { injectIntl, intlShape } from '@edx/frontend-platform/i18n';
 
-import { Button, Toast } from '@edx/paragon';
+import { Button } from '@edx/paragon';
 import { AlertList } from '../../generic/user-messages';
 
 import CourseDates from './widgets/CourseDates';
-import CourseGoalCard from './widgets/DeprecatedCourseGoalCard';
 import CourseHandouts from './widgets/CourseHandouts';
 import StartOrResumeCourseCard from './widgets/StartOrResumeCourseCard';
 import WeeklyLearningGoalCard from './widgets/WeeklyLearningGoalCard';
 import CourseTools from './widgets/CourseTools';
 import { fetchOutlineTab } from '../data';
-import genericMessages from '../../generic/messages';
 import messages from './messages';
 import Section from './Section';
 import ShiftDatesAlert from '../suggested-schedule-messaging/ShiftDatesAlert';
-import UpdateGoalSelector from './widgets/UpdateGoalSelector';
 import UpgradeNotification from '../../generic/upgrade-notification/UpgradeNotification';
 import UpgradeToShiftDatesAlert from '../suggested-schedule-messaging/UpgradeToShiftDatesAlert';
 import useCertificateAvailableAlert from './alerts/certificate-status-alert';
@@ -37,13 +34,13 @@ import { initHomeMMP2P, MMP2PFlyover } from '../../experiments/mm-p2p';
 function OutlineTab({ intl }) {
   const {
     courseId,
+    proctoringPanelStatus,
   } = useSelector(state => state.courseHome);
 
   const {
     isSelfPaced,
     org,
     title,
-    username,
     userTimezone,
   } = useModel('courseHomeMeta', courseId);
 
@@ -54,7 +51,6 @@ function OutlineTab({ intl }) {
       sections,
     },
     courseGoals: {
-      goalOptions,
       selectedGoal,
       weeklyLearningGoalEnabled,
     } = {},
@@ -64,19 +60,11 @@ function OutlineTab({ intl }) {
     },
     enableProctoredExams,
     offer,
-    resumeCourse: {
-      url: resumeCourseUrl,
-    },
     timeOffsetMillis,
     verifiedMode,
   } = useModel('outline', courseId);
 
-  const [deprecatedCourseGoalToDisplay, setDeprecatedCourseGoalToDisplay] = useState(selectedGoal);
-  const [goalToastHeader, setGoalToastHeader] = useState('');
   const [expandAll, setExpandAll] = useState(false);
-  // Defer showing the goal widget until the ProctoringInfoPanel is either shown or determined as not showing
-  // to avoid components bouncing around too much as screen is displayed
-  const [proctorPanelResolved, setProctorPanelResolved] = useState(!enableProctoredExams);
 
   const eventProperties = {
     org_key: org,
@@ -119,13 +107,6 @@ function OutlineTab({ intl }) {
 
   return (
     <>
-      <Toast
-        closeLabel={intl.formatMessage(genericMessages.close)}
-        onClose={() => setGoalToastHeader('')}
-        show={!!(goalToastHeader)}
-      >
-        {goalToastHeader}
-      </Toast>
       <div data-learner-type={learnerType} className="row w-100 mx-0 my-3 justify-content-between">
         <div className="col-12 col-sm-auto p-0">
           <div role="heading" aria-level="1" className="h2">{title}</div>
@@ -163,18 +144,7 @@ function OutlineTab({ intl }) {
               <UpgradeToShiftDatesAlert model="outline" logUpgradeLinkClick={logUpgradeToShiftDatesLinkClick} />
             </>
           )}
-          {!deprecatedCourseGoalToDisplay && goalOptions && goalOptions.length > 0 && (
-            <CourseGoalCard
-              courseId={courseId}
-              goalOptions={goalOptions}
-              title={title}
-              setGoalToDisplay={(newGoal) => { setDeprecatedCourseGoalToDisplay(newGoal); }}
-              setGoalToastHeader={(newHeader) => { setGoalToastHeader(newHeader); }}
-            />
-          )}
-          {resumeCourseUrl && (
           <StartOrResumeCourseCard />
-          )}
           <WelcomeMessage courseId={courseId} />
           {rootCourseId && (
             <>
@@ -185,7 +155,7 @@ function OutlineTab({ intl }) {
                   </Button>
                 </div>
               </div>
-              <ol className="list-unstyled">
+              <ol id="courseHome-outline" className="list-unstyled">
                 {courses[rootCourseId].sectionIds.map((sectionId) => (
                   <Section
                     key={sectionId}
@@ -201,29 +171,16 @@ function OutlineTab({ intl }) {
         </div>
         {rootCourseId && (
           <div className="col col-12 col-md-4">
-            <ProctoringInfoPanel
-              courseId={courseId}
-              username={username}
-              isResolved={() => setProctorPanelResolved(true)}
-            />
-            {deprecatedCourseGoalToDisplay && goalOptions && goalOptions.length > 0 && (
-              <UpdateGoalSelector
-                courseId={courseId}
-                goalOptions={goalOptions}
-                selectedGoal={deprecatedCourseGoalToDisplay}
-                setGoalToDisplay={(newGoal) => { setDeprecatedCourseGoalToDisplay(newGoal); }}
-                setGoalToastHeader={(newHeader) => { setGoalToastHeader(newHeader); }}
-              />
-            )}
-            {proctorPanelResolved && weeklyLearningGoalEnabled && (
+            <ProctoringInfoPanel />
+            { /** Defer showing the goal widget until the ProctoringInfoPanel has resolved or has been determined as
+             disabled to avoid components bouncing around too much as screen is rendered */ }
+            {(!enableProctoredExams || proctoringPanelStatus === 'loaded') && weeklyLearningGoalEnabled && (
               <WeeklyLearningGoalCard
                 daysPerWeek={selectedGoal && 'daysPerWeek' in selectedGoal ? selectedGoal.daysPerWeek : null}
                 subscribedToReminders={selectedGoal && 'subscribedToReminders' in selectedGoal ? selectedGoal.subscribedToReminders : false}
               />
             )}
-            <CourseTools
-              courseId={courseId}
-            />
+            <CourseTools />
             { /** [MM-P2P] Experiment (conditional) */ }
             { MMP2P.state.isEnabled
               ? <MMP2PFlyover isStatic options={MMP2P} />
@@ -242,13 +199,10 @@ function OutlineTab({ intl }) {
                 />
               )}
             <CourseDates
-              courseId={courseId}
               /** [MM-P2P] Experiment */
               mmp2p={MMP2P}
             />
-            <CourseHandouts
-              courseId={courseId}
-            />
+            <CourseHandouts />
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
 import { sendTrackingLogEvent } from '@edx/frontend-platform/analytics';
 import { getAuthenticatedUser } from '@edx/frontend-platform/auth';
@@ -12,8 +12,12 @@ import { faNewspaper } from '@fortawesome/free-regular-svg-icons';
 
 import messages from '../messages';
 import { useModel } from '../../../generic/model-store';
+import LaunchCourseHomeTourButton from '../../../product-tours/newUserCourseHomeTour/LaunchCourseHomeTourButton';
 
-function CourseTools({ courseId, intl }) {
+function CourseTools({ intl }) {
+  const {
+    courseId,
+  } = useSelector(state => state.courseHome);
   const { org } = useModel('courseHomeMeta', courseId);
   const {
     courseTools,
@@ -69,18 +73,16 @@ function CourseTools({ courseId, intl }) {
             </a>
           </li>
         ))}
+        <li className="small" id="courseHome-launchTourLink">
+          <LaunchCourseHomeTourButton />
+        </li>
       </ul>
     </section>
   );
 }
 
 CourseTools.propTypes = {
-  courseId: PropTypes.string,
   intl: intlShape.isRequired,
-};
-
-CourseTools.defaultProps = {
-  courseId: null,
 };
 
 export default injectIntl(CourseTools);
